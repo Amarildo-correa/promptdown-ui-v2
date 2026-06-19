@@ -36,21 +36,21 @@ graph TD
 
 ### Existing Components to Leverage
 
-| Component                   | Location                       | How to Use                                                            |
-| ---------------------------- | -------------------------------- | ----------------------------------------------------------------------- |
-| `json-server-auth`           | `node_modules/json-server-auth`  | Continua validando JWT via `Authorization: Bearer` — não é modificado |
-| `sanitizeMiddleware`         | `api/middleware/sanitize.js`     | Permanece após `handleAuthCookies` na ordem de middlewares             |
-| `delayMiddleware`            | `api/middleware/delay.js`        | Permanece antes da cadeia de auth, sem alteração                       |
-| `store.js` (Proxy + pub/sub) | `public/js/store.js`             | Recebe `currentUser` resolvido por `fetchCurrentUser()`                |
-| `navigate()`                 | `public/js/router.js`            | Usado por `requireAuth()` para redirecionar a `/login`                 |
+| Component                    | Location                        | How to Use                                                            |
+| ---------------------------- | ------------------------------- | --------------------------------------------------------------------- |
+| `json-server-auth`           | `node_modules/json-server-auth` | Continua validando JWT via `Authorization: Bearer` — não é modificado |
+| `sanitizeMiddleware`         | `api/middleware/sanitize.js`    | Permanece após `handleAuthCookies` na ordem de middlewares            |
+| `delayMiddleware`            | `api/middleware/delay.js`       | Permanece antes da cadeia de auth, sem alteração                      |
+| `store.js` (Proxy + pub/sub) | `public/js/store.js`            | Recebe `currentUser` resolvido por `fetchCurrentUser()`               |
+| `navigate()`                 | `public/js/router.js`           | Usado por `requireAuth()` para redirecionar a `/login`                |
 
 ### Integration Points
 
-| System              | Integration Method                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| `json-server-auth`   | `injectAuthHeader` roda antes dela e popula `req.headers.authorization` a partir do cookie |
-| browser-sync         | `bs-config.js` adiciona middleware de proxy via `http-proxy-middleware`             |
-| `docs/api/openapi.yaml` | Novos paths `/me` e `/logout`; `AuthResponse` perde o campo `accessToken`         |
+| System                  | Integration Method                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `json-server-auth`      | `injectAuthHeader` roda antes dela e popula `req.headers.authorization` a partir do cookie |
+| browser-sync            | `bs-config.js` adiciona middleware de proxy via `http-proxy-middleware`                    |
+| `docs/api/openapi.yaml` | Novos paths `/me` e `/logout`; `AuthResponse` perde o campo `accessToken`                  |
 
 ---
 
@@ -74,9 +74,7 @@ export default {
     single: true,
     port: 5173,
     watch: true,
-    middleware: [
-        createProxyMiddleware("/api", { target: "http://localhost:3001", changeOrigin: true }),
-    ],
+    middleware: [createProxyMiddleware("/api", { target: "http://localhost:3001", changeOrigin: true })],
 };
 ```
 
@@ -95,8 +93,8 @@ export default {
   `/me` e `/logout`.
 - **Location**: `api/middleware/cookie-auth.js`
 - **Interfaces**:
-  - `injectAuthHeader(req, res, next): void` — middleware Express, roda **antes** de `auth`
-  - `handleAuthCookies(req, res, next): void` — middleware Express, roda **depois** de `auth`
+    - `injectAuthHeader(req, res, next): void` — middleware Express, roda **antes** de `auth`
+    - `handleAuthCookies(req, res, next): void` — middleware Express, roda **depois** de `auth`
 - **Dependencies**: `cookie`, `jsonwebtoken` (devDependencies novas), `process.env.JWT_SECRET`
 - **Reuses**: nenhum existente — arquivo novo
 
@@ -154,9 +152,13 @@ export function handleAuthCookies(req, res, next) {
         const sendJson = res.json.bind(res);
         res.json = (body) => {
             if (body?.accessToken) {
-                res.setHeader("Set-Cookie", cookie.serialize(COOKIE_NAME, body.accessToken, {
-                    ...COOKIE_OPTS, maxAge: 60 * 60 * 24,
-                }));
+                res.setHeader(
+                    "Set-Cookie",
+                    cookie.serialize(COOKIE_NAME, body.accessToken, {
+                        ...COOKIE_OPTS,
+                        maxAge: 60 * 60 * 24,
+                    }),
+                );
                 const { accessToken, ...rest } = body;
                 return sendJson(rest);
             }
@@ -223,8 +225,8 @@ server.listen(3001, () => console.log("API rodando em http://localhost:3001"));
   cookie `HttpOnly`, inacessível a JS).
 - **Location**: `public/js/lib/auth.js`
 - **Interfaces**:
-  - `fetchCurrentUser(): Promise<object|null>` — chama `GET /api/me`, retorna `user` ou `null`
-  - `isAuthenticated(): Promise<boolean>` — `true` se `fetchCurrentUser()` !== `null`
+    - `fetchCurrentUser(): Promise<object|null>` — chama `GET /api/me`, retorna `user` ou `null`
+    - `isAuthenticated(): Promise<boolean>` — `true` se `fetchCurrentUser()` !== `null`
 - **Dependencies**: `fetch` nativo
 - **Reuses**: nenhum — substitui por completo a versão anterior baseada em `sessionStorage`
 
@@ -257,10 +259,10 @@ export async function isAuthenticated() {
   com `credentials: "include"` para que o cookie viaje automaticamente.
 - **Location**: `public/js/api.js`
 - **Interfaces**:
-  - `login(email, password): Promise<{ user }>`
-  - `register(email, password): Promise<{ user }>`
-  - `logout(): Promise<void>`
-  - `createPost(data): Promise<Post>` (exemplo de chamada autenticada — padrão se repete em outras funções de `api.js`)
+    - `login(email, password): Promise<{ user }>`
+    - `register(email, password): Promise<{ user }>`
+    - `logout(): Promise<void>`
+    - `createPost(data): Promise<Post>` (exemplo de chamada autenticada — padrão se repete em outras funções de `api.js`)
 - **Dependencies**: `fetch` nativo
 - **Reuses**: nenhum de `lib/auth.js` — `authHeaders()` é removido
 
@@ -316,7 +318,7 @@ export async function createPost(data) {
   `fetchCurrentUser()` retorna `null`.
 - **Location**: `public/js/app.js`
 - **Interfaces**:
-  - `requireAuth(): Promise<boolean>` — `true` se autenticado (não redireciona); `false` se redirecionou
+    - `requireAuth(): Promise<boolean>` — `true` se autenticado (não redireciona); `false` se redirecionou
 - **Dependencies**: `lib/auth.js` (`isAuthenticated`), `router.js` (`navigate`)
 - **Reuses**: estrutura de rotas existente (`route(...)`)
 
@@ -370,10 +372,10 @@ Flags:     HttpOnly; SameSite=Lax; Path=/; Max-Age=86400
 
 ```typescript
 interface AuthResponse {
-  user: {
-    id: number
-    email: string
-  }
+    user: {
+        id: number;
+        email: string;
+    };
 }
 ```
 
@@ -384,10 +386,10 @@ aparece em payloads JSON, apenas no `Set-Cookie`.
 
 ```typescript
 interface JwtPayload {
-  sub: number   // id do usuário
-  email: string
-  iat: number
-  exp: number
+    sub: number; // id do usuário
+    email: string;
+    iat: number;
+    exp: number;
 }
 ```
 
@@ -395,37 +397,37 @@ interface JwtPayload {
 
 ## Error Handling Strategy
 
-| Error Scenario                                  | Handling                                                          | User Impact                                  |
-| ------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------- |
-| Login com credenciais inválidas                  | `json-server-auth` responde `400`; `handleAuthCookies` não seta cookie | `login()` lança `Error("Credenciais inválidas")` |
-| Cookie ausente em rota protegida                  | `injectAuthHeader` não popula header; `json-server-auth` responde `401` | `fetch` retorna `401`; caller trata             |
-| Cookie expirado/inválido em `/me`                 | `jwt.verify` lança; `handleAuthCookies` captura e responde `401`     | `fetchCurrentUser()` retorna `null`              |
-| `/logout` sem sessão ativa                        | `handleAuthCookies` responde `200 { ok: true }` (idempotente)        | Nenhum — operação sempre "sucesso"               |
-| `requireAuth()` em view privada sem sessão        | `navigate('/login')`; view retorna `null`                            | Usuário é redirecionado, sem erro visível        |
+| Error Scenario                             | Handling                                                                | User Impact                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------- | ------------------------------------------------ |
+| Login com credenciais inválidas            | `json-server-auth` responde `400`; `handleAuthCookies` não seta cookie  | `login()` lança `Error("Credenciais inválidas")` |
+| Cookie ausente em rota protegida           | `injectAuthHeader` não popula header; `json-server-auth` responde `401` | `fetch` retorna `401`; caller trata              |
+| Cookie expirado/inválido em `/me`          | `jwt.verify` lança; `handleAuthCookies` captura e responde `401`        | `fetchCurrentUser()` retorna `null`              |
+| `/logout` sem sessão ativa                 | `handleAuthCookies` responde `200 { ok: true }` (idempotente)           | Nenhum — operação sempre "sucesso"               |
+| `requireAuth()` em view privada sem sessão | `navigate('/login')`; view retorna `null`                               | Usuário é redirecionado, sem erro visível        |
 
 ---
 
 ## Tech Decisions (only non-obvious ones)
 
-| Decision                                  | Choice                                                    | Rationale                                                                                                  |
-| ------------------------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `SameSite=Lax` em vez de `Strict`         | `Lax`                                                          | `Strict` bloquearia o cookie em navegações top-level a partir de links externos (ex: post compartilhado)       |
-| Proxy de dev em vez de HTTPS local          | `bs-config.js` + `http-proxy-middleware`                       | Elimina a exigência de `SameSite=None; Secure` (que requer HTTPS), unificando a origem em dev                  |
-| `injectAuthHeader` antes de `auth`         | Middleware fino traduzindo cookie → header                    | Reaproveita 100% da validação interna do `json-server-auth` sem fork ou modificação da lib                     |
-| Override de `res.json` em `handleAuthCookies` | Interceptar resposta de `/login`/`/register`                | Permite remover `accessToken` do body sem reescrever as rotas internas do `json-server-auth`                   |
+| Decision                                             | Choice                                                                                                                  | Rationale                                                                                                                                                 |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SameSite=Lax` em vez de `Strict`                    | `Lax`                                                                                                                   | `Strict` bloquearia o cookie em navegações top-level a partir de links externos (ex: post compartilhado)                                                  |
+| Proxy de dev em vez de HTTPS local                   | `bs-config.js` + `http-proxy-middleware`                                                                                | Elimina a exigência de `SameSite=None; Secure` (que requer HTTPS), unificando a origem em dev                                                             |
+| `injectAuthHeader` antes de `auth`                   | Middleware fino traduzindo cookie → header                                                                              | Reaproveita 100% da validação interna do `json-server-auth` sem fork ou modificação da lib                                                                |
+| Override de `res.json` em `handleAuthCookies`        | Interceptar resposta de `/login`/`/register`                                                                            | Permite remover `accessToken` do body sem reescrever as rotas internas do `json-server-auth`                                                              |
 | `JWT_SECRET` compartilhado via env var, sem fallback | `process.env.JWT_SECRET`, mesmo valor para `json-server-auth` e `cookie-auth.js`; `MUST` lançar erro no boot se ausente | `jwt.verify` em `/me` precisa do mesmo secret usado para assinar o token — `MUST` documentar no `.env.example`; fallback hardcoded permitiria forjar JWTs |
-| `isAuthenticated()` assíncrono              | `Promise<boolean>` via `/api/me`                              | Cookie `HttpOnly` não é legível por JS — única forma de checar sessão é perguntar ao servidor                  |
+| `isAuthenticated()` assíncrono                       | `Promise<boolean>` via `/api/me`                                                                                        | Cookie `HttpOnly` não é legível por JS — única forma de checar sessão é perguntar ao servidor                                                             |
 
 ---
 
 ## Rastreabilidade design → spec
 
-| Decisão de design                                          | Requisito(s) satisfeitos |
-| ------------------------------------------------------------ | ------------------------- |
-| `handleAuthCookies` — Set-Cookie em login/register            | AUTH-01                    |
-| `handleAuthCookies` — `GET /me`                                | AUTH-02                    |
-| `injectAuthHeader` — cookie → Authorization                   | AUTH-03                    |
-| `handleAuthCookies` — `POST /logout`                           | AUTH-04                    |
-| `bs-config.js` — proxy `/api/*` → `:3001`                      | AUTH-05                    |
-| `lib/auth.js` — `fetchCurrentUser` / `isAuthenticated`         | AUTH-06                    |
-| `app.js` — `requireAuth()` assíncrono                          | AUTH-07                    |
+| Decisão de design                                      | Requisito(s) satisfeitos |
+| ------------------------------------------------------ | ------------------------ |
+| `handleAuthCookies` — Set-Cookie em login/register     | AUTH-01                  |
+| `handleAuthCookies` — `GET /me`                        | AUTH-02                  |
+| `injectAuthHeader` — cookie → Authorization            | AUTH-03                  |
+| `handleAuthCookies` — `POST /logout`                   | AUTH-04                  |
+| `bs-config.js` — proxy `/api/*` → `:3001`              | AUTH-05                  |
+| `lib/auth.js` — `fetchCurrentUser` / `isAuthenticated` | AUTH-06                  |
+| `app.js` — `requireAuth()` assíncrono                  | AUTH-07                  |

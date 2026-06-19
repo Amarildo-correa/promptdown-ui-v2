@@ -14,16 +14,12 @@ funcionando com gates passando (`markdown-rendering` fica para depois). Ver
 
 ## Comandos
 
-Reais (`package.json` hoje):
-
-```bash
-npm run test            # vitest run
-npm run test:coverage   # vitest run --coverage
-```
-
-Planejados, ainda **não existem**: `serve`, `api`, `lint`, `lint:api`, `format`,
-`mock:api`, `test:e2e`, `test:a11y`. Ver `.specs/codebase/CONCERNS.md` para detalhes e
-`.specs/codebase/TESTING.md` para a matriz de cobertura por tipo de teste.
+| Comando                                      | Estado                       | Detalhe                           |
+| -------------------------------------------- | ---------------------------- | --------------------------------- |
+| `npm run test`                               | Implementado                 | `vitest run`                      |
+| `npm run test:coverage`                      | Implementado                 | `vitest run --coverage`           |
+| `serve`, `api`, `lint`, `lint:api`, `format` | `MUST NOT` usar — não existe | Ver `.specs/codebase/CONCERNS.md` |
+| `mock:api`, `test:e2e`, `test:a11y`          | `MUST NOT` usar — não existe | Ver `.specs/codebase/TESTING.md`  |
 
 ## Restrições Absolutas (MUST / MUST NOT)
 
@@ -60,30 +56,38 @@ Planejados, ainda **não existem**: `serve`, `api`, `lint`, `lint:api`, `format`
 
 ## Convenções rápidas
 
-**Estrutura de pastas** (ver `.specs/codebase/STRUCTURE.md`):
+Estrutura de pastas — ver `.specs/codebase/STRUCTURE.md`:
 
-- `public/js/lib/` — utilitários puros sem DOM (ex.: `truncate.js`)
-- `public/js/components/`, `public/js/views/`, `public/js/api.js`, `public/js/store.js`,
-  `public/js/router.js`, `public/js/app.js` — planejados, ainda não existem
-- `api/openapi.yaml` — contrato real (OpenAPI 3.0.3); `api/server.js` e
-  `api/middleware/*` planejados
-- `tests/unit/` — único diretório de teste existente
-- `.specs/features/{auth-cookie-httponly,feed-publico,markdown-rendering}/` — specs ativas
+| Caminho                            | Responsabilidade                           | Estado                       |
+| ---------------------------------- | ------------------------------------------ | ---------------------------- |
+| `public/js/lib/`                   | Utilitários puros sem DOM                  | Implementado — `truncate.js` |
+| `public/js/components/`            | Componentes de UI reutilizáveis            | Planejado                    |
+| `public/js/views/`                 | Views da SPA — lifecycle contract          | Planejado                    |
+| `public/js/api.js`                 | Chamadas HTTP à API REST                   | Planejado                    |
+| `public/js/store.js`               | Store global — Proxy + pub/sub             | Planejado                    |
+| `public/js/router.js`              | Roteamento via History API                 | Planejado                    |
+| `public/js/app.js`                 | Entry point + `unhandledrejection` handler | Planejado                    |
+| `api/openapi.yaml`                 | Contrato OpenAPI 3.0.3                     | Implementado                 |
+| `api/server.js`, `api/middleware/` | Servidor e middlewares                     | Planejado                    |
+| `tests/unit/`                      | Testes unitários                           | Implementado                 |
+| `.specs/features/`                 | Specs ativas por feature                   | Implementado                 |
 
-**Padrão de testes** (ver `.specs/codebase/TESTING.md`):
+Padrão de testes — ver `.specs/codebase/TESTING.md`:
 
-- Vitest (`describe`/`it`/`expect`), um `describe` por função exportada
-- Arquivo `tests/unit/*.test.js` espelha o módulo de origem em `public/js/lib/`
-- Casos cobrem: comportamento normal, edge cases (entrada vazia/nula/não-string) e
-  regressões nomeadas
-- Gate rápido: `npm run test` · Gate completo (antes de concluir tarefa):
-  `npm run test:coverage`
+| Aspecto       | Detalhe                                                               |
+| ------------- | --------------------------------------------------------------------- |
+| Stack         | Vitest — `describe` / `it` / `expect`                                 |
+| Estrutura     | Um `describe` por função exportada; arquivo espelha `public/js/lib/`  |
+| Cobertura     | Normal + edge cases (vazio / nulo / não-string) + regressões nomeadas |
+| Gate rápido   | `npm run test` — durante desenvolvimento                              |
+| Gate completo | `npm run test:coverage` — antes de considerar tarefa concluída        |
 
-## Ponteiros
+## Referências
 
-- `.specs/project/{PROJECT,ROADMAP,STATE}.md` — visão, milestones, memória persistente
-- `.specs/codebase/{STACK,ARCHITECTURE,CONVENTIONS,STRUCTURE,TESTING,INTEGRATIONS,CONCERNS}.md`
-  — mapeamento detalhado do codebase
-- `docs/DESIGN.md` — design tokens e regras de verificação visual
-- `api/openapi.yaml` + `.spectral.yaml` — contrato de API
-- `.specs/features/` — especificações de features ativas
+| Arquivo                                                                                       | Conteúdo                                     |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `.specs/project/{PROJECT,ROADMAP,STATE}.md`                                                   | Visão, milestones, memória persistente       |
+| `.specs/codebase/{STACK,ARCHITECTURE,CONVENTIONS,STRUCTURE,TESTING,INTEGRATIONS,CONCERNS}.md` | Mapeamento detalhado do codebase             |
+| `docs/DESIGN.md`                                                                              | Design tokens e regras de verificação visual |
+| `api/openapi.yaml` + `.spectral.yaml`                                                         | Contrato de API                              |
+| `.specs/features/`                                                                            | Especificações de features ativas            |

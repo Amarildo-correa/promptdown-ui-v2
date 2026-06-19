@@ -10,14 +10,14 @@
 
 Todas seguem os padrões registrados em `.specs/codebase/ARCHITECTURE.md` (Identified Patterns):
 
-| Decisão                                            | Referência                                                                                                              |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Decisão                                            | Referência                                                                                                                                                                                                                               |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Componente `PostCard` usa template-cloning factory | `.specs/codebase/ARCHITECTURE.md#component-pattern--template-cloning-factory-components-planejado` — `document.importNode`, e `.specs/codebase/CONVENTIONS.md` § Hard Constraints (`MUST NOT` `innerHTML` com variáveis nem `cloneNode`) |
-| View retorna `{ destroy() }` com unsubscribe       | `.specs/codebase/ARCHITECTURE.md#view-lifecycle-e-cleanup-planejado` — memory leak progressivo por rota                |
-| Skeleton exibido **antes** de qualquer `await`     | `.specs/codebase/ARCHITECTURE.md#lazy-loading-de-rotas-planejado` — `MUST` chamar `showSkeleton(app)` antes do `await` |
-| Like de usuário não autenticado → `/login`         | `.specs/codebase/ARCHITECTURE.md#autenticação--fluxo-modelo-atual` → `.specs/features/auth-cookie-httponly/design.md` — `MUST` redirecionar para `/login` se `isAuthenticated()` retornar `false` |
-| Erros exibidos com `role="alert"`                  | `.specs/codebase/ARCHITECTURE.md#error-handling-global-planejado` — `MUST NOT` deixar erro silencioso                  |
-| `document.title` atualizado no handler da rota     | `.specs/codebase/ARCHITECTURE.md#roteamento--history-api-router-planejado` — `MUST` atualizar `document.title` a cada navegação |
+| View retorna `{ destroy() }` com unsubscribe       | `.specs/codebase/ARCHITECTURE.md#view-lifecycle-e-cleanup-planejado` — memory leak progressivo por rota                                                                                                                                  |
+| Skeleton exibido **antes** de qualquer `await`     | `.specs/codebase/ARCHITECTURE.md#lazy-loading-de-rotas-planejado` — `MUST` chamar `showSkeleton(app)` antes do `await`                                                                                                                   |
+| Like de usuário não autenticado → `/login`         | `.specs/codebase/ARCHITECTURE.md#autenticação--fluxo-modelo-atual` → `.specs/features/auth-cookie-httponly/design.md` — `MUST` redirecionar para `/login` se `isAuthenticated()` retornar `false`                                        |
+| Erros exibidos com `role="alert"`                  | `.specs/codebase/ARCHITECTURE.md#error-handling-global-planejado` — `MUST NOT` deixar erro silencioso                                                                                                                                    |
+| `document.title` atualizado no handler da rota     | `.specs/codebase/ARCHITECTURE.md#roteamento--history-api-router-planejado` — `MUST` atualizar `document.title` a cada navegação                                                                                                          |
 
 ---
 
