@@ -1,0 +1,1399 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Feed — Promptdown</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
+        <style>
+            /* ─── Reset ─────────────────────────────────────────────────── */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+            button {
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+            ul,
+            ol {
+                list-style: none;
+            }
+
+            /* ─── Tokens ────────────────────────────────────────────────── */
+            :root {
+                --color-bg: #181a18;
+                --color-code-bg: #272a27;
+                --color-border: #252725;
+                --color-border-strong: #3d3a4d;
+                --color-text: #c8c5d0;
+                --color-heading: #e8e6ec;
+                --color-muted: #a8a4b2;
+                --color-subtle: #6b6c7a;
+                --color-accent: #b09eff;
+                --color-warning: #e8b84b;
+                --color-error: #ff6b6b;
+
+                --font-ui: "Inter", sans-serif;
+                --font-code: "Roboto Mono", monospace;
+
+                --text-xs: 0.75rem;
+                --text-sm: 0.875rem;
+                --text-base: 1rem;
+                --text-lg: 1.125rem;
+                --text-xl: 1.25rem;
+
+                --font-normal: 400;
+                --font-medium: 500;
+                --font-bold: 700;
+
+                --leading-tight: 1.3;
+                --leading-base: 1.6;
+
+                --space-1: 0.25rem;
+                --space-2: 0.5rem;
+                --space-3: 0.75rem;
+                --space-4: 1rem;
+                --space-5: 1.25rem;
+                --space-6: 1.5rem;
+                --space-8: 2rem;
+                --space-10: 2.5rem;
+                --space-12: 3rem;
+
+                --sidebar-width: 16.25rem;
+                --card-avatar-col: 3.5rem;
+                --transition-fast: 150ms ease;
+            }
+
+            /* ─── Base ──────────────────────────────────────────────────── */
+            body {
+                background: var(--color-bg);
+                color: var(--color-text);
+                font-family: var(--font-ui);
+                font-size: var(--text-base);
+                line-height: var(--leading-base);
+                min-height: 100vh;
+            }
+
+            /* ═══════════════════════════════════════════════════════════════
+         GRID — borda única
+         .g-row  → border-left
+         .g-cell → border-right + border-bottom
+         MUST NOT: border-top em .g-row / border-left em .g-cell
+      ═══════════════════════════════════════════════════════════════ */
+            .g-row {
+                display: flex;
+                border-left: 1px solid var(--color-border);
+            }
+            .g-cell {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-right: 1px solid var(--color-border);
+                border-bottom: 1px solid var(--color-border);
+                background: transparent;
+            }
+
+            /* ─── Layout ────────────────────────────────────────────────── */
+            .layout {
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            /* ═══════════════════════════════════════════════════════════════
+         SIDEBAR
+      ═══════════════════════════════════════════════════════════════ */
+            .sidebar {
+                width: var(--sidebar-width);
+                flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            /* Todas as linhas da sidebar encostam no viewport → sem border-left */
+            .sidebar__head.g-row,
+            .sidebar__section-label.g-row,
+            .sidebar__foot.g-row,
+            .nav-item.g-row {
+                border-left: none;
+            }
+
+            .sidebar__nav {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+            }
+
+            /* ── Logo ──────────────────────────────────────────────────────
+         FIX #1: <i> e <span>Promptdown</span> eram dois elementos
+         numa célula. Agora cada um é sua própria .g-cell.
+      ─────────────────────────────────────────────────────────────── */
+            .sidebar__logo-icon.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+                color: var(--color-accent);
+                font-size: var(--text-xl);
+            }
+            .sidebar__logo-text.g-cell {
+                flex: 1;
+                justify-content: flex-start;
+                padding: 0 var(--space-4);
+                font-size: var(--text-base);
+                font-weight: var(--font-bold);
+                color: var(--color-heading);
+            }
+
+            /* ── Label de seção ─────────────────────────────────────────── */
+            .sidebar__section-label .g-cell {
+                flex: 1;
+                justify-content: flex-start;
+                padding: var(--space-3) var(--space-5);
+                font-size: var(--text-xs);
+                font-weight: var(--font-medium);
+                color: var(--color-subtle);
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+
+            /* ── Nav item ───────────────────────────────────────────────── */
+            .nav-item.g-row {
+                cursor: pointer;
+            }
+            .nav-item:hover .g-cell {
+                border-color: var(--color-border-strong);
+            }
+            .nav-item:hover .nav-item__text {
+                color: var(--color-heading);
+            }
+            .nav-item--active .nav-item__icon {
+                color: var(--color-accent);
+            }
+            .nav-item--active .nav-item__text {
+                color: var(--color-accent);
+            }
+            .nav-item--active .nav-item__badge {
+                border-color: var(--color-border-strong);
+            }
+
+            /* Célula de ícone do nav */
+            .nav-item__icon.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-base);
+            }
+
+            /* Célula de texto do nav */
+            .nav-item__body.g-cell {
+                flex: 1;
+                justify-content: flex-start;
+                padding: var(--space-3) var(--space-4);
+            }
+            .nav-item__text {
+                font-size: var(--text-sm);
+                font-weight: var(--font-medium);
+                color: var(--color-muted);
+                transition: color var(--transition-fast);
+            }
+
+            /* ── Badge do nav ──────────────────────────────────────────────
+         FIX #2: badge era filho da mesma .g-cell do texto.
+         Agora tem sua própria .g-cell.
+      ─────────────────────────────────────────────────────────────── */
+            .nav-item__badge.g-cell {
+                flex-shrink: 0;
+                padding: 0 var(--space-4);
+                font-family: var(--font-ui);
+                font-size: var(--text-xs);
+                font-weight: var(--font-medium);
+                color: var(--color-accent);
+            }
+
+            /* ── Rodapé / Perfil ───────────────────────────────────────────
+         FIX #3: avatar, nome e handle estavam numa única .g-cell.
+         Agora cada um é sua própria .g-cell.
+         - sidebar__avatar  → .avatar
+         - sidebar__name    → "alice_dev"
+         - sidebar__handle  → "@alice_dev"
+      ─────────────────────────────────────────────────────────────── */
+            .sidebar__foot .g-cell {
+                border-color: var(--color-border-strong);
+            }
+
+            .sidebar__avatar.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+            }
+            .avatar {
+                width: 1.75rem;
+                height: 1.75rem;
+                background: var(--color-border-strong);
+                color: var(--color-accent);
+                font-size: var(--text-xs);
+                font-weight: var(--font-bold);
+                font-family: var(--font-ui);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .sidebar__name.g-cell {
+                flex-shrink: 0;
+                padding: var(--space-3) var(--space-4);
+                font-size: var(--text-sm);
+                font-weight: var(--font-medium);
+                color: var(--color-heading);
+            }
+            .sidebar__handle.g-cell {
+                flex: 1;
+                justify-content: flex-start;
+                padding: var(--space-3) var(--space-3);
+                font-size: var(--text-xs);
+                color: var(--color-subtle);
+            }
+
+            .sidebar__action.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-base);
+                transition: color var(--transition-fast);
+            }
+            .sidebar__action:hover {
+                color: var(--color-heading);
+            }
+
+            /* ═══════════════════════════════════════════════════════════════
+         PAINEL DE CONTEÚDO
+      ═══════════════════════════════════════════════════════════════ */
+            .content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .feed-head.g-row,
+            .feed-filters.g-row,
+            .feed-search.g-row {
+                border-left: none;
+                flex-shrink: 0;
+            }
+
+            /* ── Cabeçalho ─────────────────────────────────────────────── */
+
+            /* Ícone do header — .g-cell própria */
+            .feed-head__icon.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+                color: var(--color-muted);
+                font-size: var(--text-xl);
+            }
+
+            /* Título — .g-cell própria */
+            .feed-head__title.g-cell {
+                flex: 1;
+                justify-content: flex-start;
+                padding: var(--space-4) var(--space-4);
+            }
+            .feed-head__title h1 {
+                font-size: var(--text-xl);
+                font-weight: var(--font-bold);
+                color: var(--color-heading);
+                line-height: var(--leading-tight);
+            }
+
+            /* ── Ação do header ────────────────────────────────────────────
+         FIX #4: ícone e texto "Novo post" estavam na mesma .g-cell.
+         Agora cada um é sua própria .g-cell (dois <a> co-href).
+      ─────────────────────────────────────────────────────────────── */
+            a.feed-head__action-icon.g-cell,
+            a.feed-head__action-text.g-cell {
+                color: var(--color-accent);
+                cursor: pointer;
+                border-right-color: var(--color-accent);
+                transition: color var(--transition-fast);
+                font-family: var(--font-ui);
+                font-size: var(--text-sm);
+                font-weight: var(--font-medium);
+            }
+            a.feed-head__action-icon.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+                font-size: var(--text-base);
+            }
+            a.feed-head__action-text.g-cell {
+                flex-shrink: 0;
+                padding: var(--space-3) var(--space-5);
+            }
+            a.feed-head__action-icon.g-cell:hover,
+            a.feed-head__action-text.g-cell:hover {
+                color: var(--color-heading);
+            }
+
+            /* ── Filtros ───────────────────────────────────────────────────
+         FIX #5: cada filtro tinha <i> + texto numa única .g-cell.
+         Agora: ícone → .feed-filter-icon .g-cell
+                label → .feed-filter .g-cell (o <button>)
+      ─────────────────────────────────────────────────────────────── */
+            .feed-filter-icon.g-cell {
+                width: 2rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-sm);
+                transition:
+                    color var(--transition-fast),
+                    border-color var(--transition-fast);
+            }
+            .feed-filter.g-cell {
+                flex-shrink: 0;
+                padding: var(--space-3) var(--space-4);
+                font-size: var(--text-sm);
+                font-weight: var(--font-medium);
+                color: var(--color-muted);
+                cursor: pointer;
+                transition:
+                    color var(--transition-fast),
+                    border-color var(--transition-fast);
+            }
+            /* Separador entre grupos de filtro */
+            .feed-filter-sep.g-cell {
+                flex: 1;
+                align-self: stretch;
+            }
+            .feed-filter-icon--active {
+                color: var(--color-accent);
+                border-bottom-color: var(--color-accent);
+            }
+            .feed-filter--active {
+                color: var(--color-accent);
+                border-bottom-color: var(--color-accent);
+            }
+            .feed-filter:hover,
+            .feed-filter-icon:hover {
+                color: var(--color-heading);
+            }
+
+            /* ── Busca ──────────────────────────────────────────────────── */
+            .feed-search__icon.g-cell {
+                width: 2.75rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-base);
+            }
+            .feed-search__input.g-cell {
+                flex: 1;
+                justify-content: flex-start;
+                padding: var(--space-3) var(--space-4);
+            }
+
+            .input {
+                width: 100%;
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: var(--font-ui);
+                font-size: var(--text-sm);
+                color: var(--color-text);
+                line-height: var(--leading-base);
+            }
+            .input::placeholder {
+                color: var(--color-subtle);
+            }
+
+            /* ── Lista ──────────────────────────────────────────────────── */
+            .feed-list {
+                flex: 1;
+                overflow-y: auto;
+            }
+
+            /* ═══════════════════════════════════════════════════════════════
+         CARD
+
+         .card                    ← flex-direction: column
+           .card__row .g-row      ← row header:  [avatar] [author] [gap] [time]
+           .card__row .g-row      ← row title:   [spacer] [título]
+           .card__row .g-row      ← row preview: [spacer] [preview]
+           .card__row .g-row      ← row footer:  [spacer] [tag]… [gap] [icon] [n] [icon] [n]
+
+         FIX #6: author, sep e time estavam na mesma .g-cell.
+         Agora: author → .card__author-cell .g-cell
+                gap    → .card__gap-cell    .g-cell  (flex:1, empurra time)
+                time   → .card__time-cell   .g-cell
+                (separador "·" removido — a borda entre células o substitui)
+      ═══════════════════════════════════════════════════════════════ */
+            .card {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+            }
+            .card__row.g-row {
+                border-left: none;
+            }
+            .card:hover .g-cell {
+                border-color: var(--color-border-strong);
+            }
+
+            /* Coluna de avatar */
+            .card__avatar-col.g-cell {
+                width: var(--card-avatar-col);
+                flex-shrink: 0;
+                align-items: flex-start;
+                justify-content: center;
+                padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+            }
+
+            /* Spacer de alinhamento (largura = coluna de avatar) */
+            .card__spacer.g-cell {
+                width: var(--card-avatar-col);
+                flex-shrink: 0;
+                align-self: stretch;
+            }
+
+            /* Célula de autor */
+            .card__author-cell.g-cell {
+                flex-shrink: 0;
+                padding: var(--space-4) var(--space-4) var(--space-3) var(--space-4);
+                font-size: var(--text-sm);
+                font-weight: var(--font-medium);
+                color: var(--color-muted);
+            }
+
+            /* Gap — empurra time para a direita */
+            .card__gap-cell.g-cell {
+                flex: 1;
+                align-self: stretch;
+            }
+
+            /* Célula de tempo */
+            .card__time-cell.g-cell {
+                flex-shrink: 0;
+                padding: var(--space-4) var(--space-5) var(--space-3) var(--space-4);
+                font-size: var(--text-xs);
+                color: var(--color-subtle);
+            }
+
+            /* Célula de título */
+            .card__title-cell.g-cell {
+                flex: 1;
+                align-items: flex-start;
+                padding: var(--space-3) var(--space-6) var(--space-3) var(--space-4);
+            }
+            .card__title {
+                font-size: var(--text-lg);
+                font-weight: var(--font-bold);
+                color: var(--color-heading);
+                line-height: var(--leading-tight);
+            }
+
+            /* Célula de preview */
+            .card__preview-cell.g-cell {
+                flex: 1;
+                align-items: flex-start;
+                padding: var(--space-3) var(--space-6) var(--space-3) var(--space-4);
+            }
+            .card__preview {
+                font-size: var(--text-base);
+                color: var(--color-text);
+                font-family: var(--font-code);
+                line-height: var(--leading-base);
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            /* Célula de tag */
+            .card__tag.g-cell {
+                flex-shrink: 0;
+                padding: var(--space-2) var(--space-3);
+                font-family: var(--font-ui);
+                font-size: var(--text-xs);
+                font-weight: var(--font-medium);
+                color: var(--color-accent);
+            }
+
+            /* Gap entre tags e métricas */
+            .card__meta-gap.g-cell {
+                flex: 1;
+                align-self: stretch;
+            }
+
+            /* Célula de ícone de métrica */
+            .card__meta-icon.g-cell {
+                width: 2rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-xs);
+            }
+
+            /* Célula de contagem de métrica */
+            .card__meta-count.g-cell {
+                flex-shrink: 0;
+                padding: 0 var(--space-3) 0 var(--space-1);
+                font-size: var(--text-xs);
+                color: var(--color-subtle);
+                font-family: var(--font-ui);
+            }
+
+            /* ═══════════════════════════════════════════════════════════════
+         OVERFLOW DE LINHA — botão "mais" + popover
+         Quando .card__row.g-row não cabe na largura disponível, o JS
+         move as células excedentes para um popover acessado por este botão.
+      ═══════════════════════════════════════════════════════════════ */
+            .card__row-more.g-cell {
+                width: 2rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-sm);
+                cursor: pointer;
+                transition: color var(--transition-fast);
+            }
+            .card__row-more.g-cell:hover {
+                color: var(--color-heading);
+            }
+
+            .row-popover {
+                position: fixed;
+                display: flex;
+                flex-direction: column;
+                background: var(--color-bg);
+                border: 1px solid var(--color-border-strong);
+                max-height: 16rem;
+                min-width: 8rem;
+                overflow-y: auto;
+                z-index: 300;
+            }
+            /* Cada item é uma linha de grid real — célula(s) com border-right/border-bottom
+         intactas, mantendo o mosaico de borda única (DESIGN.md § 0, § 3). */
+            .row-popover__item.g-row {
+                border-left: none;
+            }
+            .row-popover__item .g-cell {
+                justify-content: flex-start;
+            }
+
+            /* ═══════════════════════════════════════════════════════════════
+         MOBILE — toggle + sidebar como modal fullscreen
+      ═══════════════════════════════════════════════════════════════ */
+            .sidebar-toggle {
+                display: none;
+                position: fixed;
+                bottom: var(--space-6);
+                right: var(--space-6);
+                z-index: 100;
+                width: 3rem;
+                height: 3rem;
+                align-items: center;
+                justify-content: center;
+                background: var(--color-code-bg);
+                border: 1px solid var(--color-border-strong);
+                color: var(--color-heading);
+                font-size: var(--text-lg);
+                transition: color var(--transition-fast), border-color var(--transition-fast);
+            }
+            .sidebar-toggle:hover {
+                color: var(--color-accent);
+                border-color: var(--color-accent);
+            }
+
+            .sidebar__close.g-cell {
+                display: none;
+                width: 2.75rem;
+                flex-shrink: 0;
+                color: var(--color-subtle);
+                font-size: var(--text-base);
+                transition: color var(--transition-fast);
+            }
+            .sidebar__close.g-cell:hover {
+                color: var(--color-heading);
+            }
+
+            @media (max-width: 48rem) {
+                .sidebar-toggle {
+                    display: flex;
+                }
+                .sidebar {
+                    display: none;
+                    position: fixed;
+                    inset: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    z-index: 200;
+                    background: var(--color-bg);
+                }
+                .sidebar--open {
+                    display: flex;
+                }
+                .sidebar__close.g-cell {
+                    display: flex;
+                }
+                body.no-scroll {
+                    overflow: hidden;
+                }
+            }
+
+            /* ─── Scrollbar ──────────────────────────────────────────────── */
+            /* Chrome, Edge, Safari */
+            ::-webkit-scrollbar {
+                width: 4px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--color-border-strong);
+                border-radius: 0;
+            }
+            ::-webkit-scrollbar-button {
+                display: none;
+            }
+            /* Firefox — só aplica quando ::-webkit-scrollbar não é suportado */
+            @supports not selector(::-webkit-scrollbar) {
+                * {
+                    scrollbar-width: thin;
+                    scrollbar-color: var(--color-border-strong) transparent;
+                }
+            }
+
+            /* ─── Reduced motion ─────────────────────────────────────────── */
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    transition-duration: 0ms !important;
+                }
+            }
+
+            /* ─── Light theme ────────────────────────────────────────────── */
+            @media (prefers-color-scheme: light) {
+                :root {
+                    --color-bg: #f4f3f7;
+                    --color-code-bg: #eceaf0;
+                    --color-border: #d9d7e0;
+                    --color-border-strong: #b8b4c8;
+                    --color-text: #3a3748;
+                    --color-heading: #1a1826;
+                    --color-muted: #5a566a;
+                    --color-subtle: #8c88a0;
+                    --color-accent: #6b4fe8;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="layout">
+            <!-- ══════════════════════════════
+           SIDEBAR
+      ══════════════════════════════ -->
+            <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+                <!--
+          FIX #1 — logo:
+          <i> e <span>Promptdown</span> eram dois elementos em uma .g-cell.
+          Agora cada um é sua própria .g-cell.
+        -->
+                <div class="sidebar__head g-row">
+                    <div class="sidebar__logo-icon g-cell">
+                        <i class="ti ti-terminal-2" aria-hidden="true"></i>
+                    </div>
+                    <div class="sidebar__logo-text g-cell">Promptdown</div>
+                    <button class="sidebar__close g-cell" id="sidebarClose" aria-label="Fechar menu">
+                        <i class="ti ti-x" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <nav class="sidebar__nav" aria-label="Seções">
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Descobrir</div>
+                    </div>
+
+                    <!-- Nav items sem badge: ícone | texto -->
+                    <a href="#" class="nav-item g-row nav-item--active" aria-current="page">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-layout-list" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Feed</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-trending-up" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Populares</span></div>
+                    </a>
+
+                    <!--
+            FIX #2 — nav com badge:
+            <span nav-item__text> e <span badge> eram dois elementos numa .g-cell.
+            Agora badge tem sua própria .g-cell: ícone | texto | badge
+          -->
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-bookmark" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Salvos</span></div>
+                        <div class="nav-item__badge g-cell">3</div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Escrever</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-pencil-plus" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Novo post</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Meus posts</span></div>
+                        <div class="nav-item__badge g-cell">12</div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Comunidade</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-users" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Seguindo</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-bell" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Notificações</span></div>
+                        <div class="nav-item__badge g-cell">5</div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-message" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Mensagens</span></div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Explorar</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-tag" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Tags</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Estatísticas</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-award" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Destaques</span></div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Ferramentas</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-adjustments" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Editor</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-code" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Playground</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-test-pipe" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Testes A/B</span></div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Biblioteca</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-books" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Templates</span></div>
+                        <div class="nav-item__badge g-cell">8</div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-history" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Histórico</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-archive" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Arquivo</span></div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Integrações</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-plug" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Plugins</span></div>
+                        <div class="nav-item__badge g-cell">2</div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-api" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">API</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-webhook" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Webhooks</span></div>
+                    </a>
+
+                    <div class="sidebar__section-label g-row">
+                        <div class="g-cell">Suporte</div>
+                    </div>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-help-circle" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Documentação</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-message-report" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Reportar bug</span></div>
+                    </a>
+
+                    <a href="#" class="nav-item g-row">
+                        <div class="nav-item__icon g-cell"><i class="ti ti-heart-handshake" aria-hidden="true"></i></div>
+                        <div class="nav-item__body g-cell"><span class="nav-item__text">Feedback</span></div>
+                    </a>
+                </nav>
+
+                <!--
+          FIX #3 — perfil:
+          .avatar, .profile__name e .profile__handle estavam em uma .g-cell.
+          Agora cada um é sua própria .g-cell: avatar | nome | handle | ação
+        -->
+                <div class="sidebar__foot g-row">
+                    <div class="sidebar__avatar g-cell">
+                        <div class="avatar" aria-hidden="true">A</div>
+                    </div>
+                    <div class="sidebar__name g-cell">alice_dev</div>
+                    <div class="sidebar__handle g-cell">@alice_dev</div>
+                    <button class="sidebar__action g-cell" aria-label="Configurações">
+                        <i class="ti ti-settings" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- ══════════════════════════════
+           CONTEÚDO / FEED
+      ══════════════════════════════ -->
+            <main class="content" id="main" tabindex="-1" aria-label="Feed de posts">
+                <!--
+          FIX #4 — ação do header:
+          <i> e "Novo post" eram dois elementos numa única <a .g-cell>.
+          Agora cada um é sua própria .g-cell:
+            ícone → a.feed-head__action-icon .g-cell
+            texto → a.feed-head__action-text .g-cell
+        -->
+                <div class="feed-head g-row" role="banner">
+                    <div class="feed-head__icon g-cell" aria-hidden="true">
+                        <i class="ti ti-layout-list"></i>
+                    </div>
+                    <div class="feed-head__title g-cell">
+                        <h1>Feed</h1>
+                    </div>
+                    <a href="#" class="feed-head__action-icon g-cell" aria-hidden="true" tabindex="-1">
+                        <i class="ti ti-pencil-plus"></i>
+                    </a>
+                    <a href="#" class="feed-head__action-text g-cell">Novo post</a>
+                </div>
+
+                <!--
+          FIX #5 — filtros:
+          cada <button .feed-filter .g-cell> continha <i> + texto.
+          Agora ícone e label são .g-cell independentes.
+        -->
+                <div class="feed-filters g-row" role="tablist" aria-label="Filtrar posts">
+                    <div class="feed-filter-icon g-cell feed-filter-icon--active" aria-hidden="true">
+                        <i class="ti ti-list"></i>
+                    </div>
+                    <button class="feed-filter g-cell feed-filter--active" role="tab" aria-selected="true">Todos</button>
+
+                    <div class="feed-filter-icon g-cell" aria-hidden="true">
+                        <i class="ti ti-trending-up"></i>
+                    </div>
+                    <button class="feed-filter g-cell" role="tab" aria-selected="false">Recentes</button>
+
+                    <div class="feed-filter-icon g-cell" aria-hidden="true">
+                        <i class="ti ti-heart"></i>
+                    </div>
+                    <button class="feed-filter g-cell" role="tab" aria-selected="false">Seguidos</button>
+
+                    <!-- célula vazia ocupa o espaço restante -->
+                    <div class="feed-filter-sep g-cell"></div>
+                </div>
+
+                <!-- Busca: ícone | input -->
+                <div class="feed-search g-row" role="search">
+                    <div class="feed-search__icon g-cell" aria-hidden="true">
+                        <i class="ti ti-search"></i>
+                    </div>
+                    <div class="feed-search__input g-cell">
+                        <input class="input" type="search" placeholder="Buscar posts, autores ou tags…" aria-label="Buscar posts" />
+                    </div>
+                </div>
+
+                <!--
+          FIX #6 — card header row:
+          author, sep "·" e time estavam na mesma .g-cell.
+          Agora cada um é sua própria .g-cell.
+          O "·" foi removido — a borda entre células substitui o separador.
+
+          Row header: [avatar] [author] [gap] [time]
+        -->
+                <ol class="feed-list" aria-label="Posts">
+                    <!-- ── Card 1 ── -->
+                    <li>
+                        <article class="card" tabindex="0" aria-labelledby="post-title-1">
+                            <div class="card__row g-row">
+                                <div class="card__avatar-col g-cell"><div class="avatar" aria-label="Avatar de alice_dev">A</div></div>
+                                <div class="card__author-cell g-cell">alice_dev</div>
+                                <div class="card__gap-cell g-cell"></div>
+                                <div class="card__time-cell g-cell"><time datetime="2026-06-18">18 jun</time></div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__title-cell g-cell">
+                                    <h2 class="card__title" id="post-title-1">Como estruturei meu workflow de prompts com variáveis reutilizáveis</h2>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__preview-cell g-cell">
+                                    <p class="card__preview">
+                                        Depois de meses iterando prompts manualmente, criei um sistema de templates com slots nomeados que reduz o tempo de ajuste em 80%. Aqui está como funciona na
+                                        prática, com exemplos reais de produção.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__tag g-cell">workflow</div>
+                                <div class="card__tag g-cell">templates</div>
+                                <div class="card__tag g-cell">produtividade</div>
+                                <div class="card__meta-gap g-cell"></div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-eye" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">1.2k</div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-heart" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">84</div>
+                            </div>
+                        </article>
+                    </li>
+
+                    <!-- ── Card 2 ── -->
+                    <li>
+                        <article class="card" tabindex="0" aria-labelledby="post-title-2">
+                            <div class="card__row g-row">
+                                <div class="card__avatar-col g-cell"><div class="avatar" aria-label="Avatar de bneto">B</div></div>
+                                <div class="card__author-cell g-cell">bneto</div>
+                                <div class="card__gap-cell g-cell"></div>
+                                <div class="card__time-cell g-cell"><time datetime="2026-06-17">17 jun</time></div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__title-cell g-cell">
+                                    <h2 class="card__title" id="post-title-2">Chain-of-thought vs. few-shot: quando usar cada abordagem</h2>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__preview-cell g-cell">
+                                    <p class="card__preview">
+                                        Testei as duas técnicas em 40 tarefas distintas e os resultados são surpreendentes. Few-shot ganha em tarefas de classificação, mas chain-of-thought domina em
+                                        raciocínio matemático e lógico.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__tag g-cell">CoT</div>
+                                <div class="card__tag g-cell">few-shot</div>
+                                <div class="card__tag g-cell">benchmarks</div>
+                                <div class="card__meta-gap g-cell"></div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-eye" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">876</div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-heart" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">61</div>
+                            </div>
+                        </article>
+                    </li>
+
+                    <!-- ── Card 3 ── -->
+                    <li>
+                        <article class="card" tabindex="0" aria-labelledby="post-title-3">
+                            <div class="card__row g-row">
+                                <div class="card__avatar-col g-cell"><div class="avatar" aria-label="Avatar de cmorais">C</div></div>
+                                <div class="card__author-cell g-cell">cmorais</div>
+                                <div class="card__gap-cell g-cell"></div>
+                                <div class="card__time-cell g-cell"><time datetime="2026-06-16">16 jun</time></div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__title-cell g-cell">
+                                    <h2 class="card__title" id="post-title-3">Prompt injection: como proteger pipelines de LLM em produção</h2>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__preview-cell g-cell">
+                                    <p class="card__preview">
+                                        Após um incidente em produção onde um agente foi manipulado por dados externos, documentei as 5 camadas de defesa que implementamos. Inclui exemplos de ataques
+                                        reais e como mitigá-los.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__tag g-cell">segurança</div>
+                                <div class="card__tag g-cell">agentes</div>
+                                <div class="card__tag g-cell">produção</div>
+                                <div class="card__meta-gap g-cell"></div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-eye" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">2.4k</div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-heart" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">193</div>
+                            </div>
+                        </article>
+                    </li>
+
+                    <!-- ── Card 4 ── -->
+                    <li>
+                        <article class="card" tabindex="0" aria-labelledby="post-title-4">
+                            <div class="card__row g-row">
+                                <div class="card__avatar-col g-cell"><div class="avatar" aria-label="Avatar de dfernandes">D</div></div>
+                                <div class="card__author-cell g-cell">dfernandes</div>
+                                <div class="card__gap-cell g-cell"></div>
+                                <div class="card__time-cell g-cell"><time datetime="2026-06-15">15 jun</time></div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__title-cell g-cell">
+                                    <h2 class="card__title" id="post-title-4">Construindo um evaluator automatizado com LLM-as-a-judge</h2>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__preview-cell g-cell">
+                                    <p class="card__preview">
+                                        Mostro como construir um pipeline de avaliação onde o próprio modelo julga a qualidade das respostas usando rubricas estruturadas em JSON. Taxa de concordância
+                                        com avaliadores humanos: 91%.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__tag g-cell">evals</div>
+                                <div class="card__tag g-cell">automação</div>
+                                <div class="card__meta-gap g-cell"></div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-eye" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">543</div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-heart" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">47</div>
+                            </div>
+                        </article>
+                    </li>
+
+                    <!-- ── Card 5 ── -->
+                    <li>
+                        <article class="card" tabindex="0" aria-labelledby="post-title-5">
+                            <div class="card__row g-row">
+                                <div class="card__avatar-col g-cell"><div class="avatar" aria-label="Avatar de esouza">E</div></div>
+                                <div class="card__author-cell g-cell">esouza</div>
+                                <div class="card__gap-cell g-cell"></div>
+                                <div class="card__time-cell g-cell"><time datetime="2026-06-14">14 jun</time></div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__title-cell g-cell">
+                                    <h2 class="card__title" id="post-title-5">Por que system prompts longos prejudicam a performance do modelo</h2>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__preview-cell g-cell">
+                                    <p class="card__preview">
+                                        Experimentos com system prompts de 200, 800 e 3000 tokens mostram degradação mensurável na qualidade das respostas conforme o contexto cresce. Analisei os
+                                        trade-offs e as estratégias de compressão.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__tag g-cell">system-prompt</div>
+                                <div class="card__tag g-cell">performance</div>
+                                <div class="card__tag g-cell">contexto</div>
+                                <div class="card__meta-gap g-cell"></div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-eye" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">1.8k</div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-heart" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">127</div>
+                            </div>
+                        </article>
+                    </li>
+
+                    <!-- ── Card 6 ── -->
+                    <li>
+                        <article class="card" tabindex="0" aria-labelledby="post-title-6">
+                            <div class="card__row g-row">
+                                <div class="card__avatar-col g-cell"><div class="avatar" aria-label="Avatar de flima">F</div></div>
+                                <div class="card__author-cell g-cell">flima</div>
+                                <div class="card__gap-cell g-cell"></div>
+                                <div class="card__time-cell g-cell"><time datetime="2026-06-13">13 jun</time></div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__title-cell g-cell">
+                                    <h2 class="card__title" id="post-title-6">Persona engineering: como criar identidades consistentes para agentes</h2>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__preview-cell g-cell">
+                                    <p class="card__preview">
+                                        Uma persona bem definida não é cosmética — afeta diretamente o tom, a escolha de exemplos e até a resistência a jailbreaks. Documento o processo que usamos para
+                                        criar 6 personas distintas em nosso produto.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card__row g-row">
+                                <div class="card__spacer g-cell"></div>
+                                <div class="card__tag g-cell">personas</div>
+                                <div class="card__tag g-cell">agentes</div>
+                                <div class="card__meta-gap g-cell"></div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-eye" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">690</div>
+                                <div class="card__meta-icon g-cell"><i class="ti ti-heart" aria-hidden="true"></i></div>
+                                <div class="card__meta-count g-cell">55</div>
+                            </div>
+                        </article>
+                    </li>
+                </ol>
+            </main>
+        </div>
+
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="sidebar">
+            <i class="ti ti-menu-2" aria-hidden="true"></i>
+        </button>
+
+        <script>
+            (() => {
+                const sidebar = document.getElementById("sidebar");
+                const toggle = document.getElementById("sidebarToggle");
+                const close = document.getElementById("sidebarClose");
+
+                function openSidebar() {
+                    sidebar.classList.add("sidebar--open");
+                    document.body.classList.add("no-scroll");
+                    toggle.setAttribute("aria-expanded", "true");
+                    close.focus();
+                }
+
+                function closeSidebar() {
+                    sidebar.classList.remove("sidebar--open");
+                    document.body.classList.remove("no-scroll");
+                    toggle.setAttribute("aria-expanded", "false");
+                    toggle.focus();
+                }
+
+                toggle.addEventListener("click", openSidebar);
+                close.addEventListener("click", closeSidebar);
+
+                sidebar.addEventListener("click", (event) => {
+                    if (event.target === sidebar) {
+                        closeSidebar();
+                    }
+                });
+
+                document.addEventListener("keydown", (event) => {
+                    if (event.key === "Escape" && sidebar.classList.contains("sidebar--open")) {
+                        closeSidebar();
+                    }
+                });
+            })();
+        </script>
+
+        <script>
+            (() => {
+                const rowCells = new Map();
+                const rowToggles = new Map();
+                let openPopover = null;
+
+                function createToggle(row) {
+                    const button = document.createElement("button");
+                    button.className = "card__row-more g-cell";
+                    button.setAttribute("aria-haspopup", "true");
+                    button.setAttribute("aria-expanded", "false");
+                    button.setAttribute("aria-label", "Mostrar mais itens");
+                    const icon = document.createElement("i");
+                    icon.className = "ti ti-dots";
+                    icon.setAttribute("aria-hidden", "true");
+                    button.appendChild(icon);
+                    button.addEventListener("click", (event) => {
+                        event.stopPropagation();
+                        if (openPopover && openPopover.row === row) {
+                            closePopover();
+                            return;
+                        }
+                        if (openPopover) {
+                            closePopover();
+                        }
+                        openPopoverFor(row, button);
+                    });
+                    return button;
+                }
+
+                function layoutRow(row) {
+                    if (!rowCells.has(row)) {
+                        rowCells.set(row, Array.from(row.children));
+                    }
+                    const cells = rowCells.get(row);
+                    let toggle = rowToggles.get(row);
+                    if (toggle) {
+                        toggle.remove();
+                    }
+                    cells.forEach((cell) => row.appendChild(cell));
+
+                    if (row.scrollWidth <= row.clientWidth) {
+                        return;
+                    }
+
+                    if (!toggle) {
+                        toggle = createToggle(row);
+                        rowToggles.set(row, toggle);
+                    }
+                    row.appendChild(toggle);
+
+                    let i = cells.length - 1;
+                    while (row.scrollWidth > row.clientWidth && i >= 0) {
+                        const cell = cells[i];
+                        const isCount = cell.classList.contains("card__meta-count");
+                        cell.remove();
+                        i--;
+                        if (isCount && i >= 0 && cells[i].classList.contains("card__meta-icon")) {
+                            cells[i].remove();
+                            i--;
+                        }
+                    }
+                }
+
+                function openPopoverFor(row, toggle) {
+                    const cells = rowCells.get(row);
+                    const hiddenCells = cells.filter((cell) => cell.parentElement !== row);
+                    if (hiddenCells.length === 0) {
+                        return;
+                    }
+
+                    const popover = document.createElement("div");
+                    popover.className = "row-popover";
+                    popover.style.visibility = "hidden";
+
+                    let idx = 0;
+                    while (idx < hiddenCells.length) {
+                        const cell = hiddenCells[idx];
+                        const item = document.createElement("div");
+                        item.className = "row-popover__item g-row";
+                        item.appendChild(cell);
+                        if (
+                            cell.classList.contains("card__meta-icon") &&
+                            hiddenCells[idx + 1] &&
+                            hiddenCells[idx + 1].classList.contains("card__meta-count")
+                        ) {
+                            item.appendChild(hiddenCells[idx + 1]);
+                            idx += 2;
+                        } else {
+                            idx += 1;
+                        }
+                        popover.appendChild(item);
+                    }
+
+                    document.body.appendChild(popover);
+                    const toggleRect = toggle.getBoundingClientRect();
+                    const top = toggleRect.bottom + 4;
+                    const left = Math.max(8, toggleRect.right - popover.offsetWidth);
+                    popover.style.top = `${top}px`;
+                    popover.style.left = `${left}px`;
+                    popover.style.visibility = "visible";
+
+                    const icon = toggle.querySelector("i");
+                    icon.className = "ti ti-x";
+                    toggle.setAttribute("aria-expanded", "true");
+                    toggle.setAttribute("aria-label", "Ocultar itens");
+
+                    openPopover = { row, toggle, popover };
+                    document.addEventListener("click", handleOutsideClick);
+                    document.addEventListener("keydown", handlePopoverKeydown);
+                }
+
+                function closePopover() {
+                    if (!openPopover) {
+                        return;
+                    }
+                    const { row, toggle, popover } = openPopover;
+                    layoutRow(row);
+                    popover.remove();
+
+                    const icon = toggle.querySelector("i");
+                    icon.className = "ti ti-dots";
+                    toggle.setAttribute("aria-expanded", "false");
+                    toggle.setAttribute("aria-label", "Mostrar mais itens");
+                    toggle.focus();
+
+                    document.removeEventListener("click", handleOutsideClick);
+                    document.removeEventListener("keydown", handlePopoverKeydown);
+                    openPopover = null;
+                }
+
+                function handleOutsideClick(event) {
+                    if (openPopover && !openPopover.popover.contains(event.target)) {
+                        closePopover();
+                    }
+                }
+
+                function handlePopoverKeydown(event) {
+                    if (event.key === "Escape") {
+                        closePopover();
+                    }
+                }
+
+                function layoutAllRows() {
+                    if (openPopover) {
+                        closePopover();
+                    }
+                    document.querySelectorAll(".card .card__row.g-row").forEach(layoutRow);
+                }
+
+                let resizeTimer;
+                window.addEventListener("resize", () => {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(layoutAllRows, 150);
+                });
+
+                layoutAllRows();
+                window.addEventListener("load", layoutAllRows);
+            })();
+        </script>
+    </body>
+</html>

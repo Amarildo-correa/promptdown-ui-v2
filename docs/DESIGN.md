@@ -425,6 +425,174 @@ overflow: hidden;` e a área de conteúdo interna leva `flex: 1; overflow-y: aut
 
 ---
 
+## 4.1 Scrollbar
+
+> SSoT global. Todo elemento scrollável do projeto `MUST` usar exatamente estes pseudo-elementos. `MUST NOT` declarar `scrollbar-width` ou `scrollbar-color` fora do bloco `@supports` abaixo — essas propriedades sobrescrevem os pseudo-elementos webkit quando aplicadas diretamente.
+
+```css
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+    width: 4px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 0;
+}
+::-webkit-scrollbar-button {
+    display: none;
+}
+/* Firefox — só aplica quando ::-webkit-scrollbar não é suportado */
+@supports not selector(::-webkit-scrollbar) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-border-strong) transparent;
+    }
+}
+```
+
+**Padrão de container scrollável:**
+
+```css
+.scrollable {
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* Se for filho flex, obrigatório: */
+    min-height: 0;
+}
+```
+
+**Scroll horizontal é proibido em qualquer página.** Nenhum elemento — `.g-row`, card,
+painel ou container — `MUST NOT` gerar `overflow-x` visível ou `scroll`. Quando uma
+linha (`.g-row`) tem mais células do que cabem na largura disponível, o excesso `MUST`
+ser ocultado e acessível via um controle (não via scroll lateral). Ver o exemplo de
+`.card__row` com o componente § 4.2.
+
+### 4.2 Linha com overflow — botão "mais" + popover
+
+Quando um `.g-row` não cabe na largura do container (ex.: linha de rodapé do card com
+muitas tags e métricas), as células excedentes do final da linha são removidas do fluxo
+e substituídas por um botão `.g-cell` com ícone `ti-dots`, que abre um popover flutuante
+listando as células ocultas. Pares `card__meta-icon` + `card__meta-count` `MUST` ser
+ocultados/exibidos juntos — nunca o ícone sem o número correspondente.
+
+```css
+.row-more.g-cell {
+    width: var(--col-icon-sm);
+    flex-shrink: 0;
+    color: var(--color-subtle);
+    font-size: var(--text-sm);
+    cursor: pointer;
+}
+.row-more.g-cell:hover {
+    color: var(--color-heading);
+}
+
+/* Wrapper agrupador — NÃO é célula (§ 0.2), apenas posiciona o popover flutuante */
+.row-popover {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-strong);
+    max-height: 16rem;
+    min-width: 8rem;
+    overflow-y: auto;
+    z-index: 300;
+}
+
+/* Cada item ocultado reaparece como uma linha de grid real — Padrão
+   Coluna-de-Linhas (§ 3.7). Mantém as .g-cell originais intactas, com
+   border-right/border-bottom; não criar um wrapper que zere as bordas. */
+.row-popover__item.g-row {
+    border-left: none; /* a borda do .row-popover já delimita o lado esquerdo, ver § 3.5 */
+}
+.row-popover__item .g-cell {
+    justify-content: flex-start;
+}
+```
+
+Cada `.row-popover__item` agrupa os elementos visuais correspondentes ao mesmo dado
+oculto: uma `.g-cell` para uma tag isolada, ou duas `.g-cell` (ícone + número) para um
+par de métrica — nunca um wrapper único cobrindo os dois sem distinção de célula.
+
+Acessibilidade obrigatória: o botão usa `aria-haspopup="true"` e `aria-expanded`
+sincronizado com o estado do popover; o popover fecha com `Esc`, clique fora, ou no
+próprio botão (alternando ícone `ti-dots` ↔ `ti-x`); ao fechar, o foco retorna ao botão.
+
+### 4.3 Painel Off-canvas (Mobile)
+
+Abaixo de `48rem`, qualquer painel lateral (sidebar, filtros, preview) que não cabe ao
+lado do conteúdo `MUST` virar um painel off-canvas: some do fluxo, reaparece como modal
+fullscreen acionado por um botão flutuante. Use nomes contextuais (`.sidebar-toggle`,
+`.sidebar--open`, `.sidebar__close`) seguindo este padrão genérico:
+
+```css
+.panel-toggle {
+    display: none;
+    position: fixed;
+    bottom: var(--space-6);
+    right: var(--space-6);
+    z-index: 100;
+    width: 3rem;
+    height: 3rem;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-heading);
+    font-size: var(--text-lg);
+}
+.panel-toggle:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.panel__close.g-cell {
+    display: none;
+    width: var(--col-icon);
+    flex-shrink: 0;
+    color: var(--color-subtle);
+    font-size: var(--text-base);
+}
+.panel__close.g-cell:hover {
+    color: var(--color-heading);
+}
+
+@media (max-width: 48rem) {
+    .panel-toggle {
+        display: flex;
+    }
+    .panel--off-canvas {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 200;
+        background: var(--color-bg);
+    }
+    .panel--off-canvas.is-open {
+        display: flex;
+    }
+    .panel__close.g-cell {
+        display: flex;
+    }
+    body.no-scroll {
+        overflow: hidden;
+    }
+}
+```
+
+Acessibilidade obrigatória: `aria-expanded` no botão de toggle sincronizado com o
+estado; fecha com `Esc`, clique no fundo do painel fora da área de navegação, ou no
+botão de fechar; `body` recebe `no-scroll` enquanto aberto; foco vai para o botão de
+fechar ao abrir e retorna ao toggle ao fechar.
+
+---
+
 ## 5. Componentes
 
 Todo componente abaixo segue a Lei Fundamental (§ 0). Onde o componente é composto por
@@ -902,6 +1070,8 @@ Executar antes de qualquer PR que toque em CSS ou HTML, **em qualquer página**.
 | Tokens de cor sem mapeamento light theme?                  | `MUST NOT` — dark é o padrão; light `MUST` remapear via `@media (prefers-color-scheme: light)` (§ 2.5) |
 | `.g-row` tem `border-top`?                                 | `MUST NOT` — ver § 3                                                                                   |
 | Container externo repete borda já desenhada pelas células? | `MUST NOT` — ver § 3.5                                                                                 |
+| Elemento gera scrollbar horizontal (`overflow-x`)?         | `MUST NOT` — nenhuma página rola na horizontal; conteúdo que não cabe `MUST` ser ocultado/agrupado (ver § 4.1) |
+| Painel lateral sem versão off-canvas abaixo de `48rem`?    | `MUST NOT` — ver § 4.3                                                                                  |
 
 ---
 

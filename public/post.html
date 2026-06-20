@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Como a arquitetura de borda única simplifica grids CSS — Promptdown</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
+    <style>
+      /* ===== Tokens — docs/DESIGN.md § 2 ===== */
+      :root {
+        --color-bg: #181a18;
+        --color-code-bg: #272a27;
+        --color-border: #252725;
+        --color-border-strong: #3d3a4d;
+
+        --color-text: #c8c5d0;
+        --color-heading: #e8e6ec;
+        --color-muted: #a8a4b2;
+        --color-subtle: #6b6c7a;
+
+        --color-accent: #b09eff;
+        --color-warning: #e8b84b;
+        --color-error: #ff6b6b;
+
+        --font-ui: "Inter", sans-serif;
+        --font-code: "Roboto Mono", monospace;
+
+        --text-xs: 0.75rem;
+        --text-sm: 0.875rem;
+        --text-base: 1rem;
+        --text-lg: 1.125rem;
+        --text-xl: 1.25rem;
+        --text-2xl: 1.5rem;
+
+        --font-normal: 400;
+        --font-medium: 500;
+        --font-bold: 700;
+
+        --leading-tight: 1.3;
+        --leading-base: 1.6;
+
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.25rem;
+        --space-6: 1.5rem;
+        --space-8: 2rem;
+        --space-10: 2.5rem;
+        --space-12: 3rem;
+
+        --sidebar-width: 16.25rem;
+        --panel-min: 30rem;
+        --transition-fast: 150ms ease;
+
+        --col-icon: 2.75rem;
+        --col-icon-sm: 2rem;
+        --card-avatar-col: 3.5rem;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --color-bg: #f4f3f7;
+          --color-code-bg: #eceaf0;
+          --color-border: #d9d7e0;
+          --color-border-strong: #b8b4c8;
+          --color-text: #3a3748;
+          --color-heading: #1a1826;
+          --color-muted: #5a566a;
+          --color-subtle: #8c88a0;
+          --color-accent: #6b4fe8;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      body.no-scroll {
+        overflow: hidden;
+      }
+
+      /* ===== Layout — § 4 ===== */
+      .layout {
+        display: flex;
+        height: 100vh;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-ui);
+      }
+
+      /* ===== Grid — § 3 ===== */
+      .g-row {
+        display: flex;
+        border-left: 1px solid var(--color-border);
+      }
+      .g-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        border-right: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        background: transparent;
+      }
+      .g-cell--gap {
+        flex: 1;
+        align-self: stretch;
+      }
+      .g-cell--spacer {
+        width: var(--card-avatar-col);
+        flex-shrink: 0;
+        align-self: stretch;
+      }
+
+      /* ===== Sidebar ===== */
+      .sidebar {
+        width: var(--sidebar-width);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      .sidebar__head.g-row,
+      .nav-item.g-row,
+      .sidebar__foot.g-row {
+        border-left: none;
+      }
+      .sidebar__head__icon.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        color: var(--color-accent);
+        font-size: var(--text-xl);
+      }
+      .sidebar__head__title.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-4);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--color-heading);
+      }
+
+      .nav-item__icon.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        color: var(--color-subtle);
+        font-size: var(--text-base);
+      }
+      .nav-item__body.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-3) var(--space-4);
+      }
+      .nav-item__text {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-muted);
+        transition: color var(--transition-fast);
+      }
+      .nav-item.g-row:hover .g-cell {
+        border-color: var(--color-border-strong);
+      }
+      .nav-item.g-row:hover .nav-item__text {
+        color: var(--color-heading);
+      }
+      .nav-item--active .nav-item__icon {
+        color: var(--color-accent);
+      }
+      .nav-item--active .nav-item__text {
+        color: var(--color-accent);
+      }
+
+      .sidebar__foot {
+        margin-top: auto;
+      }
+      .sidebar__foot .g-cell {
+        border-color: var(--color-border-strong);
+      }
+      .sidebar__foot__avatar.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        padding: var(--space-2);
+      }
+      .sidebar__foot__name.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text);
+      }
+
+      /* ===== Menu toggle / fechar — modal de sidebar no mobile e tablet ===== */
+      .page-head__menu-toggle.g-cell,
+      .sidebar__close.g-cell {
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        border-top: none;
+        border-left: none;
+        margin: 0;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        transition: color var(--transition-fast);
+      }
+      .page-head__menu-toggle.g-cell {
+        display: none;
+        width: var(--col-icon);
+        flex-shrink: 0;
+        color: var(--color-muted);
+        font-size: var(--text-xl);
+      }
+      .page-head__menu-toggle.g-cell:hover {
+        color: var(--color-heading);
+      }
+
+      .sidebar__modal-head.g-row {
+        display: none;
+        border-left: none;
+        flex-shrink: 0;
+      }
+      .sidebar__close.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        color: var(--color-muted);
+        font-size: var(--text-xl);
+      }
+      .sidebar__close.g-cell:hover {
+        color: var(--color-heading);
+      }
+
+      /* ===== Avatar — § 5.1 ===== */
+      .avatar {
+        width: 1.75rem;
+        height: 1.75rem;
+        background: var(--color-border-strong);
+        color: var(--color-accent);
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        font-family: var(--font-ui);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      /* ===== Content panel ===== */
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .content__body {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      /* ===== Page Header — § 5.8 ===== */
+      .page-head.g-row {
+        border-left: none;
+        flex-shrink: 0;
+      }
+      .page-head__icon.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        color: var(--color-muted);
+        font-size: var(--text-xl);
+      }
+      .page-head__title.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-4);
+      }
+      .page-head__title h1,
+      .page-head__title h2 {
+        font-size: var(--text-xl);
+        font-weight: var(--font-bold);
+        color: var(--color-heading);
+        line-height: var(--leading-tight);
+        margin: 0;
+      }
+      .page-head__action-icon.g-cell,
+      .page-head__action-text.g-cell {
+        flex-shrink: 0;
+        color: var(--color-accent);
+        border-right-color: var(--color-accent);
+        cursor: pointer;
+        font-family: var(--font-ui);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        transition: color var(--transition-fast);
+        text-decoration: none;
+      }
+      .page-head__action-icon.g-cell {
+        width: var(--col-icon);
+        font-size: var(--text-base);
+      }
+      .page-head__action-text.g-cell {
+        padding: var(--space-3) var(--space-5);
+      }
+      .page-head__action-icon.g-cell:hover,
+      .page-head__action-text.g-cell:hover {
+        color: var(--color-heading);
+      }
+
+      /* ===== Post — Padrão Coluna-de-Linhas, § 5.7 ===== */
+      .post {
+        display: flex;
+        flex-direction: column;
+      }
+      .post__row.g-row {
+        border-left: none;
+      }
+
+      .post__avatar-col.g-cell {
+        width: var(--card-avatar-col);
+        flex-shrink: 0;
+        align-items: flex-start;
+        padding: var(--space-3) 0 0 var(--space-3);
+      }
+      .post__author-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        font-weight: var(--font-medium);
+      }
+      .post__time-cell {
+        flex-shrink: 0;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-xs);
+        color: var(--color-subtle);
+      }
+
+      .post__title.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-4);
+      }
+      .post__title h2 {
+        margin: 0;
+        font-size: var(--text-2xl);
+        color: var(--color-heading);
+        font-weight: var(--font-bold);
+        line-height: var(--leading-tight);
+      }
+
+      .post__body.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: var(--space-4);
+      }
+
+      .post__tag.g-cell {
+        flex-shrink: 0;
+        padding: var(--space-2) var(--space-3);
+      }
+      .post__meta-icon.g-cell {
+        width: var(--col-icon-sm);
+        flex-shrink: 0;
+        color: var(--color-subtle);
+        font-size: var(--text-sm);
+      }
+      .post__meta-count.g-cell {
+        flex-shrink: 0;
+        padding: 0 var(--space-3) 0 0;
+        font-size: var(--text-xs);
+        color: var(--color-subtle);
+      }
+
+      /* ===== Badge — § 5.6 ===== */
+      .badge {
+        border: 1px solid var(--color-border);
+        display: inline-flex;
+        align-items: center;
+        padding: var(--space-1) var(--space-2);
+        font-family: var(--font-ui);
+        font-size: var(--text-xs);
+        font-weight: var(--font-medium);
+        color: var(--color-accent);
+      }
+
+      /* ===== Markdown body — .specs/features/markdown-rendering/design.md ===== */
+      .markdown-body {
+        font-size: var(--text-base);
+        color: var(--color-text);
+        line-height: var(--leading-base);
+        max-width: 100%;
+      }
+      .markdown-body h1,
+      .markdown-body h2,
+      .markdown-body h3 {
+        color: var(--color-heading);
+        font-weight: var(--font-bold);
+        line-height: var(--leading-tight);
+        margin: var(--space-6) 0 var(--space-3);
+      }
+      .markdown-body h1 {
+        font-size: var(--text-xl);
+      }
+      .markdown-body h2 {
+        font-size: var(--text-lg);
+      }
+      .markdown-body h3 {
+        font-size: var(--text-base);
+      }
+      .markdown-body p {
+        margin: 0 0 var(--space-3);
+      }
+      .markdown-body code {
+        background: var(--color-code-bg);
+        font-family: var(--font-code);
+        font-size: var(--text-sm);
+        padding: var(--space-1) var(--space-2);
+      }
+      .markdown-body pre {
+        background: var(--color-code-bg);
+        padding: var(--space-4);
+        overflow-x: auto;
+        margin: 0 0 var(--space-4);
+      }
+      .markdown-body pre code {
+        background: transparent;
+        padding: 0;
+      }
+      .markdown-body a {
+        color: var(--color-accent);
+        text-decoration: none;
+      }
+      .markdown-body a:hover {
+        text-decoration: underline;
+      }
+      .markdown-body blockquote {
+        border-left: 1px solid var(--color-border-strong);
+        margin: 0 0 var(--space-4);
+        padding: var(--space-1) 0 var(--space-1) var(--space-4);
+        color: var(--color-muted);
+      }
+      .markdown-body ul,
+      .markdown-body ol {
+        margin: 0 0 var(--space-3);
+        padding-left: var(--space-6);
+      }
+      .markdown-body li {
+        margin-bottom: var(--space-1);
+      }
+
+      /* ===== Comments — mesmo Padrão Coluna-de-Linhas do post ===== */
+      .comments {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .comment {
+        display: flex;
+        flex-direction: column;
+      }
+      .comment__text.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: var(--space-3) var(--space-4) var(--space-4);
+        font-size: var(--text-base);
+        color: var(--color-text);
+        line-height: var(--leading-base);
+      }
+
+      .empty.g-row {
+        border-left: none;
+      }
+      .empty__cell.g-cell {
+        flex: 1;
+        flex-direction: column;
+        gap: var(--space-4);
+        padding: var(--space-12) var(--space-6);
+        color: var(--color-subtle);
+        font-size: var(--text-sm);
+      }
+
+      /* ===== Responsivo — tablet e mobile (sidebar como modal) ===== */
+      @media (max-width: 64rem) {
+        .layout {
+          height: 100vh;
+        }
+        .sidebar {
+          display: none;
+          flex-direction: column;
+        }
+        .sidebar.is-open {
+          display: flex;
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          width: 100%;
+          height: 100%;
+          background: var(--color-bg);
+          overflow-y: auto;
+        }
+        .sidebar__modal-head.g-row {
+          display: flex;
+        }
+        .page-head__menu-toggle.g-cell {
+          display: flex;
+        }
+      }
+
+      /* ===== Responsivo — celular pequeno ===== */
+      @media (max-width: 30rem) {
+        :root {
+          --card-avatar-col: 2.5rem;
+        }
+        .page-head__icon.g-cell {
+          display: none;
+        }
+        .page-head__title h1,
+        .page-head__title h2 {
+          font-size: var(--text-lg);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .page-head__action-text.g-cell {
+          padding: var(--space-3) var(--space-3);
+          font-size: var(--text-xs);
+        }
+        .post__title h2 {
+          font-size: var(--text-xl);
+        }
+        .post__row--meta.g-row {
+          flex-wrap: wrap;
+        }
+        .post__avatar-col.g-cell {
+          padding: var(--space-2) 0 0 var(--space-2);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar__modal-head g-row">
+          <div class="g-cell g-cell--gap"></div>
+          <button type="button" id="menu-close" class="sidebar__close g-cell" aria-label="Fechar menu">
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="sidebar__head g-row">
+          <div class="sidebar__head__icon g-cell" aria-hidden="true"><i class="ti ti-brand-markdown"></i></div>
+          <div class="sidebar__head__title g-cell">Promptdown</div>
+        </div>
+
+        <nav>
+          <a href="/" class="nav-item g-row">
+            <div class="nav-item__icon g-cell" aria-hidden="true"><i class="ti ti-layout-list"></i></div>
+            <div class="nav-item__body g-cell"><span class="nav-item__text">Feed</span></div>
+          </a>
+          <a href="/novo" class="nav-item g-row">
+            <div class="nav-item__icon g-cell" aria-hidden="true"><i class="ti ti-pencil-plus"></i></div>
+            <div class="nav-item__body g-cell"><span class="nav-item__text">Novo post</span></div>
+          </a>
+          <a href="/salvos" class="nav-item g-row">
+            <div class="nav-item__icon g-cell" aria-hidden="true"><i class="ti ti-bookmark"></i></div>
+            <div class="nav-item__body g-cell"><span class="nav-item__text">Salvos</span></div>
+          </a>
+        </nav>
+
+        <div class="sidebar__foot g-row">
+          <div class="sidebar__foot__avatar g-cell"><div class="avatar">AC</div></div>
+          <div class="sidebar__foot__name g-cell">Amarildo Correa</div>
+        </div>
+      </aside>
+
+      <main class="content" tabindex="-1">
+        <div class="page-head g-row">
+          <button
+            type="button"
+            id="menu-toggle"
+            class="page-head__menu-toggle g-cell"
+            aria-expanded="false"
+            aria-controls="sidebar"
+            aria-label="Abrir menu"
+          >
+            <i class="ti ti-menu-2" aria-hidden="true"></i>
+          </button>
+          <div class="page-head__icon g-cell" aria-hidden="true"><i class="ti ti-file-text"></i></div>
+          <div class="page-head__title g-cell"><h1>Post</h1></div>
+          <div class="g-cell g-cell--gap"></div>
+          <a href="/" class="page-head__action-icon g-cell" aria-hidden="true" tabindex="-1"><i class="ti ti-arrow-left"></i></a>
+          <a href="/" class="page-head__action-text g-cell">Voltar ao feed</a>
+        </div>
+
+        <div class="content__body">
+          <article class="post">
+            <div class="post__row g-row">
+              <div class="post__avatar-col g-cell"><div class="avatar">AC</div></div>
+              <div class="post__author-cell g-cell">Amarildo Correa</div>
+              <div class="g-cell g-cell--gap"></div>
+              <time class="post__time-cell g-cell" datetime="2026-06-18T14:32:00Z">18 jun 2026</time>
+            </div>
+
+            <div class="post__row g-row">
+              <div class="g-cell g-cell--spacer"></div>
+              <div class="post__title g-cell"><h2>Como a arquitetura de borda única simplifica grids CSS</h2></div>
+            </div>
+
+            <div class="post__row g-row">
+              <div class="g-cell g-cell--spacer"></div>
+              <div class="post__body g-cell">
+                <div class="markdown-body">
+                  <p>
+                    A maior parte dos bugs visuais em listas e grids vem de bordas duplicadas: dois elementos vizinhos
+                    desenhando a mesma linha, cada um na sua metade. O sistema de <strong>borda única</strong> resolve
+                    isso atribuindo a responsabilidade da borda a exatamente uma célula.
+                  </p>
+                  <h2>A regra</h2>
+                  <p>
+                    Toda <code>.g-row</code> abre o grid com <code>border-left</code>; toda <code>.g-cell</code> fecha
+                    com <code>border-right</code> e <code>border-bottom</code>. Nenhuma outra combinação é permitida.
+                  </p>
+                  <pre><code>.g-cell {
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}</code></pre>
+                  <blockquote>
+                    <p>Uma célula é uma folha visual, não um contêiner. Wrappers de layout nunca recebem borda própria.</p>
+                  </blockquote>
+                  <p>Na prática, isso significa decompor qualquer bloco em uma lista simples:</p>
+                  <ul>
+                    <li>Cada elemento independente vira uma célula.</li>
+                    <li>Elementos lado a lado compartilham uma linha.</li>
+                    <li>Linhas empilhadas formam uma coluna sem repetir bordas.</li>
+                  </ul>
+                  <p>
+                    O resultado é previsível em qualquer densidade de conteúdo, sem precisar de <code>box-shadow</code>
+                    ou gradientes para simular profundidade — ver a <a href="/docs/design">documentação completa</a>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="post__row post__row--meta g-row">
+              <div class="g-cell g-cell--spacer"></div>
+              <div class="post__tag g-cell"><span class="badge">css</span></div>
+              <div class="post__tag g-cell"><span class="badge">design-system</span></div>
+              <div class="g-cell g-cell--gap"></div>
+              <div class="post__meta-icon g-cell" aria-hidden="true"><i class="ti ti-heart"></i></div>
+              <div class="post__meta-count g-cell">42</div>
+              <div class="post__meta-icon g-cell" aria-hidden="true"><i class="ti ti-message-circle"></i></div>
+              <div class="post__meta-count g-cell">2</div>
+            </div>
+          </article>
+
+          <div class="page-head g-row">
+            <div class="page-head__icon g-cell" aria-hidden="true"><i class="ti ti-messages"></i></div>
+            <div class="page-head__title g-cell"><h2>Comentários</h2></div>
+          </div>
+
+          <ul class="comments">
+            <li>
+              <article class="comment">
+                <div class="post__row g-row">
+                  <div class="post__avatar-col g-cell"><div class="avatar">MR</div></div>
+                  <div class="post__author-cell g-cell">Mariana Reis</div>
+                  <div class="g-cell g-cell--gap"></div>
+                  <time class="post__time-cell g-cell" datetime="2026-06-18T16:10:00Z">18 jun 2026</time>
+                </div>
+                <div class="post__row g-row">
+                  <div class="g-cell g-cell--spacer"></div>
+                  <div class="comment__text g-cell">
+                    Sempre tive dúvida sobre como evitar a borda dupla no empilhamento vertical — o exemplo do
+                    <code>border-bottom</code> deixou bem claro.
+                  </div>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="comment">
+                <div class="post__row g-row">
+                  <div class="post__avatar-col g-cell"><div class="avatar">JL</div></div>
+                  <div class="post__author-cell g-cell">João Lima</div>
+                  <div class="g-cell g-cell--gap"></div>
+                  <time class="post__time-cell g-cell" datetime="2026-06-19T09:05:00Z">19 jun 2026</time>
+                </div>
+                <div class="post__row g-row">
+                  <div class="g-cell g-cell--spacer"></div>
+                  <div class="comment__text g-cell">Vou aplicar essa convenção no nosso painel de admin.</div>
+                </div>
+              </article>
+            </li>
+          </ul>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        const sidebar = document.getElementById("sidebar");
+        const toggle = document.getElementById("menu-toggle");
+        const closeBtn = document.getElementById("menu-close");
+        let lastFocused = null;
+
+        function getFocusable() {
+          return Array.from(sidebar.querySelectorAll("a[href], button:not([disabled])")).filter(
+            (el) => el.offsetParent !== null
+          );
+        }
+
+        function onKeydown(event) {
+          if (event.key === "Escape") {
+            closeMenu();
+            return;
+          }
+          if (event.key !== "Tab") return;
+          const focusable = getFocusable();
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+
+        function openMenu() {
+          lastFocused = document.activeElement;
+          sidebar.classList.add("is-open");
+          sidebar.setAttribute("role", "dialog");
+          sidebar.setAttribute("aria-modal", "true");
+          sidebar.setAttribute("aria-label", "Menu");
+          toggle.setAttribute("aria-expanded", "true");
+          document.body.classList.add("no-scroll");
+          document.addEventListener("keydown", onKeydown);
+          closeBtn.focus();
+        }
+
+        function closeMenu() {
+          sidebar.classList.remove("is-open");
+          sidebar.removeAttribute("role");
+          sidebar.removeAttribute("aria-modal");
+          sidebar.removeAttribute("aria-label");
+          toggle.setAttribute("aria-expanded", "false");
+          document.body.classList.remove("no-scroll");
+          document.removeEventListener("keydown", onKeydown);
+          if (lastFocused) lastFocused.focus();
+        }
+
+        toggle.addEventListener("click", () => {
+          if (sidebar.classList.contains("is-open")) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        });
+
+        closeBtn.addEventListener("click", closeMenu);
+
+        sidebar.querySelectorAll(".nav-item").forEach((link) => {
+          link.addEventListener("click", closeMenu);
+        });
+      })();
+    </script>
+  </body>
+</html>
