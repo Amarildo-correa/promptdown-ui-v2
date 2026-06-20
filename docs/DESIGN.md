@@ -337,6 +337,28 @@ Em vez disso, alterar `border-color` das **células da seção que inicia** o bl
 } /* ← remover */
 ```
 
+**Componente flutuante (card centralizado, modal, painel sem viewport adjacente):**
+A remoção de `border-left`/`border-top` em § 3.5 só vale quando um lado do componente
+encosta no viewport ou em outro container que já desenha aquele limite. Um componente
+flutuante (sem nada adjacente fornecendo a borda) `MUST` manter os quatro lados
+fechados — senão o grid fica "aberto" e o card parece incompleto/sem contorno.
+
+- `border-left` permanece em **todo** `.g-row`, incluindo o primeiro (não remover).
+- `border-top` `MUST` ser adicionado ao container externo (ele não tem `.g-cell` acima
+  fornecendo esse traço, diferente do empilhamento normal do § 3.3).
+- A última linha mantém o `border-bottom` padrão das suas células (não remover).
+- `border-right` e o restante do `border-bottom` já vêm das células normalmente.
+
+```css
+/* CORRETO — painel flutuante com os 4 lados fechados */
+.login-layout {
+    width: var(--panel-login);
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--color-border);
+}
+```
+
 ### 3.6 Células utilitárias
 
 Conforme § 0.6. Padrões canônicos:
@@ -393,6 +415,7 @@ célula _spacer_ de mesma largura para manter o alinhamento.
 | Alinhamento de coluna feito com `padding-left` avulso?    | `SHOULD NOT` — usar célula _spacer_ (§ 0.6)                                             |
 | Célula tem `background-color`?                            | `MUST NOT` — herda `--color-bg` do body                                                 |
 | Separador de seção usa `border-top` no elemento seguinte? | `MUST NOT` — usar `border-color: --color-border-strong` nas células do bloco que inicia |
+| Componente flutuante (sem lado encostado no viewport/container adjacente) tem algum lado sem borda? | `MUST NOT` — manter `border-left` em todo `.g-row` e adicionar `border-top` no container externo para fechar os 4 lados (§ 3.5) |
 
 ---
 
@@ -902,6 +925,7 @@ Executar antes de qualquer PR que toque em CSS ou HTML, **em qualquer página**.
 | Tokens de cor sem mapeamento light theme?                  | `MUST NOT` — dark é o padrão; light `MUST` remapear via `@media (prefers-color-scheme: light)` (§ 2.5) |
 | `.g-row` tem `border-top`?                                 | `MUST NOT` — ver § 3                                                                                   |
 | Container externo repete borda já desenhada pelas células? | `MUST NOT` — ver § 3.5                                                                                 |
+| Card/modal/painel flutuante com algum lado sem borda?      | `MUST NOT` — flutuante `MUST` fechar os 4 lados (`border-left` em todo `.g-row` + `border-top` no container); a remoção de borda do § 3.5 é só para lados encostados no viewport/container adjacente |
 
 ---
 
