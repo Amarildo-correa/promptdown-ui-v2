@@ -43,12 +43,10 @@
 
         --leading-base: 1.6;
 
-        --space-1: 0.25rem;
         --space-2: 0.5rem;
         --space-3: 0.75rem;
         --space-4: 1rem;
-        --space-6: 1.5rem;
-        --space-8: 2rem;
+        --space-5: 1.25rem;
 
         --col-icon: 2.75rem;
         --panel-login: 24rem;
@@ -78,6 +76,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: var(--space-4);
         background: var(--color-bg);
         color: var(--color-text);
         font-family: var(--font-ui);
@@ -85,6 +84,7 @@
 
       .login-layout {
         width: var(--panel-login);
+        max-width: 100%;
         display: flex;
         flex-direction: column;
       }
@@ -147,8 +147,8 @@
 
       .label-visually-hidden {
         position: absolute;
-        width: 1px;
-        height: 1px;
+        width: 0.0625rem;
+        height: 0.0625rem;
         overflow: hidden;
         clip: rect(0 0 0 0);
         white-space: nowrap;
@@ -221,16 +221,12 @@
         opacity: 0.4;
       }
 
-      .login-foot.g-row {
-        border-bottom: none;
-      }
       .login-foot__item.g-cell {
         padding: var(--space-3) var(--space-4);
         border-bottom: none;
       }
       .login-foot__item--gap.g-cell {
         flex: 1;
-        border-right: none;
       }
       .login-foot__link {
         font-size: var(--text-sm);
@@ -246,6 +242,26 @@
       .login-foot__link:focus-visible {
         outline: 2px solid var(--color-accent);
         outline-offset: 2px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .btn,
+        .login-foot__link {
+          transition: none;
+        }
+      }
+
+      @media (max-width: 26rem) {
+        .login-foot.g-row {
+          flex-direction: column;
+        }
+        .login-foot__item.g-cell {
+          width: 100%;
+          justify-content: center;
+        }
+        .login-foot__item--gap.g-cell {
+          display: none;
+        }
       }
     </style>
   </head>
