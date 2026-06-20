@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Promptdown — Entrar</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+    />
+
+    <style>
+      :root {
+        --color-bg: #181a18;
+        --color-border: #252725;
+        --color-border-strong: #3d3a4d;
+
+        --color-text: #c8c5d0;
+        --color-heading: #e8e6ec;
+        --color-muted: #a8a4b2;
+        --color-subtle: #6b6c7a;
+
+        --color-accent: #b09eff;
+        --color-error: #ff6b6b;
+
+        --font-ui: "Inter", sans-serif;
+
+        --text-xs: 0.75rem;
+        --text-sm: 0.875rem;
+        --text-base: 1rem;
+        --text-xl: 1.25rem;
+
+        --font-normal: 400;
+        --font-medium: 500;
+        --font-bold: 700;
+
+        --leading-base: 1.6;
+
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-6: 1.5rem;
+        --space-8: 2rem;
+
+        --col-icon: 2.75rem;
+        --panel-login: 24rem;
+        --transition-fast: 150ms ease;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --color-bg: #f4f3f7;
+          --color-border: #d9d7e0;
+          --color-border-strong: #b8b4c8;
+          --color-text: #3a3748;
+          --color-heading: #1a1826;
+          --color-muted: #5a566a;
+          --color-subtle: #8c88a0;
+          --color-accent: #6b4fe8;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-ui);
+      }
+
+      .login-layout {
+        width: var(--panel-login);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .g-row {
+        display: flex;
+        border-left: 1px solid var(--color-border);
+      }
+
+      .login-layout > .g-row:first-child {
+        border-left: none;
+      }
+
+      .g-cell {
+        display: flex;
+        align-items: center;
+        border-right: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        background: transparent;
+      }
+
+      .login-head__icon.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        justify-content: center;
+        color: var(--color-accent);
+        font-size: var(--text-xl);
+      }
+      .login-head__title.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-4);
+      }
+      .login-head__title h1 {
+        margin: 0;
+        font-size: var(--text-xl);
+        font-weight: var(--font-bold);
+        color: var(--color-heading);
+      }
+
+      .login-sub__text.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+
+      .field-icon.g-cell {
+        width: var(--col-icon);
+        flex-shrink: 0;
+        justify-content: center;
+        color: var(--color-subtle);
+        font-size: var(--text-base);
+      }
+      .field-input.g-cell {
+        flex: 1;
+        padding: 0 var(--space-4);
+      }
+
+      .label-visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-family: var(--font-ui);
+        font-size: var(--text-base);
+        color: var(--color-text);
+        line-height: var(--leading-base);
+        padding: var(--space-3) 0;
+      }
+      .input::placeholder {
+        color: var(--color-subtle);
+      }
+      .field-input.g-cell:focus-within {
+        border-color: var(--color-accent);
+      }
+
+      .login-error.g-row {
+        display: none;
+      }
+      .login-error.g-row.is-visible {
+        display: flex;
+      }
+      .login-error__text.g-cell {
+        flex: 1;
+        justify-content: flex-start;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
+        color: var(--color-error);
+        border-color: var(--color-error);
+      }
+
+      .login-submit__cell.g-cell {
+        flex: 1;
+        padding: var(--space-4);
+      }
+
+      .btn {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-5);
+        font-family: var(--font-ui);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+        transition: opacity var(--transition-fast), border-color var(--transition-fast),
+          color var(--transition-fast);
+        background: transparent;
+        border: 1px solid var(--color-accent);
+        color: var(--color-accent);
+      }
+      .btn:hover {
+        opacity: 0.8;
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+      .btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+      }
+
+      .login-foot.g-row {
+        border-bottom: none;
+      }
+      .login-foot__item.g-cell {
+        padding: var(--space-3) var(--space-4);
+        border-bottom: none;
+      }
+      .login-foot__item--gap.g-cell {
+        flex: 1;
+        border-right: none;
+      }
+      .login-foot__link {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-muted);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+      }
+      .login-foot__link:hover,
+      .login-foot__link:focus-visible {
+        color: var(--color-accent);
+      }
+      .login-foot__link:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="login-layout" aria-labelledby="login-title">
+      <div class="g-row">
+        <div class="login-head__icon g-cell" aria-hidden="true"><i class="ti ti-pencil-plus"></i></div>
+        <div class="login-head__title g-cell">
+          <h1 id="login-title">Promptdown</h1>
+        </div>
+      </div>
+
+      <div class="g-row">
+        <div class="login-sub__text g-cell">Entrar na sua conta</div>
+      </div>
+
+      <form novalidate>
+        <div class="g-row">
+          <div class="field-icon g-cell" aria-hidden="true"><i class="ti ti-mail"></i></div>
+          <div class="field-input g-cell">
+            <label class="label-visually-hidden" for="login-email">E-mail</label>
+            <input
+              class="input"
+              type="email"
+              id="login-email"
+              name="email"
+              placeholder="seu@email.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="g-row">
+          <div class="field-icon g-cell" aria-hidden="true"><i class="ti ti-lock"></i></div>
+          <div class="field-input g-cell">
+            <label class="label-visually-hidden" for="login-password">Senha</label>
+            <input
+              class="input"
+              type="password"
+              id="login-password"
+              name="password"
+              placeholder="Sua senha"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="login-error g-row" role="alert">
+          <div class="login-error__text g-cell">E-mail ou senha inválidos.</div>
+        </div>
+
+        <div class="g-row">
+          <div class="login-submit__cell g-cell">
+            <button class="btn btn--primary" type="submit">Entrar</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="login-foot g-row">
+        <div class="login-foot__item g-cell">
+          <a class="login-foot__link" href="#">Esqueceu sua senha?</a>
+        </div>
+        <div class="login-foot__item login-foot__item--gap g-cell"></div>
+        <div class="login-foot__item g-cell">
+          <a class="login-foot__link" href="#">Criar conta</a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
